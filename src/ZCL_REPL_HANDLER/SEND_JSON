@@ -1,0 +1,30 @@
+  method SEND_JSON.
+
+  DATA lv_reason TYPE string.
+
+  mo_server->response->set_cdata( iv_json ).
+
+  mo_server->response->set_header_field(
+    name  = 'Content-Type'
+    value = 'application/json; charset=utf-8' ).
+
+  mo_server->response->set_header_field(
+    name  = 'Access-Control-Allow-Origin'
+    value = '*' ).
+
+  CASE iv_code.
+    WHEN 200. lv_reason = 'OK'.
+    WHEN 201. lv_reason = 'Created'.
+    WHEN 400. lv_reason = 'Bad Request'.
+    WHEN 404. lv_reason = 'Not Found'.
+    WHEN 500. lv_reason = 'Internal Server Error'.
+    WHEN OTHERS. lv_reason = 'Unknown'.
+  ENDCASE.
+
+  mo_server->response->set_status(
+    code   = iv_code
+    reason = lv_reason ).
+
+
+
+  endmethod.
