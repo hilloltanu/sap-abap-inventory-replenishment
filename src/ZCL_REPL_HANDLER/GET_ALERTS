@@ -1,0 +1,44 @@
+  method GET_ALERTS.
+
+      DATA: lt_stock  TYPE TABLE OF zmat_stock,
+        ls_stock  TYPE zmat_stock,
+        lv_body   TYPE string,
+        lv_first  TYPE abap_bool VALUE abap_true,
+        lv_count  TYPE i,
+        lv_crit   TYPE i.
+
+      SELECT *
+        FROM zmat_stock
+        INTO TABLE @lt_stock
+        WHERE mmsta = 'C' OR mmsta = 'R'
+        ORDER BY mmsta DESCENDING, matnr.
+
+      IF lt_stock IS INITIAL.
+        send_json(
+          iv_json = '{"message":"All stock levels OK","alert_count":0}'
+          iv_code = 200 ).
+        RETURN.
+      ENDIF.
+
+      LOOP AT lt_stock INTO ls_stock WHERE mmsta = 'C'.
+        lv_crit = lv_crit + 1.
+      ENDLOOP.
+
+      lv_count = lines( lt_stock ).
+      lv_body  = '{"alert_count":' && lv_count &&
+                 ',"critical_count":' && lv_crit &&
+                 ',"materials":['.
+
+      LOOP AT lt_stock INTO ls_stock.
+        IF lv_first = abap_false.
+          lv_body = lv_body && ','.
+        ENDIF.
+        lv_first = abap_false.
+        lv_body  = lv_body && build_material_json( ls_stock ).
+      ENDLOOP.
+
+      lv_body = lv_body && ']}'.
+      send_json( iv_json = lv_body iv_code = 200 ).
+
+
+  endmethod.
