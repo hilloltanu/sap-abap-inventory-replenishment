@@ -1,0 +1,24 @@
+***** Transparent Custom Database Table *********
+Transparent Table - ZMAT_STOCK
+Description - Inventory Stock Master Data
+Delivery Class - A ( Application table ) 
+
+FIELDS : 
+MANDT	MANDT	CLNT	3	0	Client
+MATNR	MATNR	CHAR	18	0	Material Number
+WERKS	WERKS_D	CHAR	4	0	Plant
+LGORT	LGORT_D	CHAR	4	0	Storage Location
+LABST	LABST	QUAN	13	3	Valuated Unrestricted-Use Stock
+INSME	INSME	QUAN	13	3	Stock in Quality Inspection
+EINME	EINME	QUAN	13	3	Total Stock of All Restricted Batches
+SPEME	SPEME	QUAN	13	3	Blocked Stock
+MEINS	MEINS	UNIT	3	0	Base Unit of Measure
+MINBE	LMINB	QUAN	13	3	Reorder point for storage location MRP
+BSTRF	LBSTF	QUAN	13	3	Replenishment quantity for storage location MRP
+KZOBS	DISKZ	CHAR	1	0	Storage location MRP indicator
+MMSTA	MMSTA	CHAR	2	0	Plant-Specific Material Status
+DLINL	DLINL	DATS	8	0	Date of Last Posted Count
+ERSDA	ERSDA	DATS	8	0	Created On
+ERNAM	ERNAM	CHAR	12	0	Name of Person Responsible for Creating the Object
+LAEDA	LAEDA	DATS	8	0	Date of Last Change
+
