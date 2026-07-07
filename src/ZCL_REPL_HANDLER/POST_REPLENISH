@@ -1,0 +1,133 @@
+  method POST_REPLENISH.
+
+      DATA: lv_body  TYPE string,
+        lv_matnr TYPE matnr,
+        lv_werks TYPE werks_d,
+        lv_lgort TYPE lgort_d,
+        lv_check TYPE matnr.
+
+     lv_body = mo_server->request->get_cdata( ).
+
+     IF lv_body IS INITIAL.
+       send_json(
+         iv_json = '{"error":"Request body is empty","code":400}'
+         iv_code = 400 ).
+       RETURN.
+     ENDIF.
+
+     lv_matnr = extract_json_value( iv_body = lv_body iv_field = 'matnr' ).
+     lv_werks = extract_json_value( iv_body = lv_body iv_field = 'werks' ).
+     lv_lgort = extract_json_value( iv_body = lv_body iv_field = 'lgort' ).
+
+     IF lv_matnr IS INITIAL.
+       send_json(
+         iv_json = '{"error":"Field matnr is required","code":400}'
+         iv_code = 400 ).
+       RETURN.
+     ENDIF.
+
+     IF lv_werks IS INITIAL.
+       send_json(
+         iv_json = '{"error":"Field werks is required","code":400}'
+         iv_code = 400 ).
+       RETURN.
+     ENDIF.
+
+     SELECT SINGLE matnr
+       FROM zmat_stock
+       INTO lv_check
+       WHERE matnr = lv_matnr
+         AND werks = lv_werks.
+
+     IF sy-subrc <> 0.
+       send_json(
+         iv_json = '{"error":"Material/Plant not found","code":404}'
+         iv_code = 404 ).
+       RETURN.
+     ENDIF.
+
+     IF lv_lgort IS NOT INITIAL.
+       UPDATE zmat_stock
+         SET mmsta  = 'O'
+             laeda  = sy-datum
+*             lanam  = sy-uname
+         WHERE matnr = lv_matnr
+           AND werks = lv_werks
+           AND lgort = lv_lgort.
+     ELSE.
+       UPDATE zmat_stock
+         SET mmsta  = 'O'
+             laeda  = sy-datum
+*             lanam  = sy-uname
+         WHERE matnr = lv_matnr
+           AND werks = lv_werks.
+     ENDIF.
+
+       IF sy-subrc = 0.
+         COMMIT WORK.
+         send_json(
+           iv_json = '{"status":"success",' &&
+                     '"message":"Replenishment confirmed",' &&
+                     '"matnr":"' && lv_matnr && '",' &&
+                     '"werks":"' && lv_werks && '",' &&
+                     '"new_status":"O"}'
+           iv_code = 200 ).
+       ELSE.
+         send_json(
+           iv_json = '{"error":"Database update failed","code":500}'
+           iv_code = 500 ).
+       ENDIF.
+
+
+*     IF sy-subrc IS NOT INITIAL.
+*       UPDATE zmat_stock
+*         SET mmsta = 'O'
+*             laeda  = sy-datum
+**             lanam  = sy-uname
+*         WHERE matnr = lv_matnr
+*           AND werks = lv_werks
+*           AND lgort = lv_lgort.
+*
+*            IF sy-subrc = 0.
+*               COMMIT WORK.
+*               send_json(
+*                 iv_json = '{"status":"success",' &&
+*                           '"message":"Replenishment confirmed",' &&
+*                           '"matnr":"' && lv_matnr && '",' &&
+*                           '"werks":"' && lv_werks && '",' &&
+*                           '"new_status":"O"}'
+*                 iv_code = 200 ).
+*             ELSE.
+*               send_json(
+*                 iv_json = '{"error":"Database update failed","code":500}'
+*                 iv_code = 500 ).
+*             ENDIF.
+*
+*     ELSE.
+*       send_json(
+*         iv_json = '{"Warning": "Material / Plant already exists","code":406}'
+*         iv_code = 400 ).
+*       RETURN.
+**       UPDATE zmat_stock
+**         SET mmsta = 'O'
+**             laeda  = sy-datum
+***             lanam  = sy-uname
+**         WHERE matnr = lv_matnr
+**           AND werks = lv_werks.
+*     ENDIF.
+
+*     IF sy-subrc = 0.
+*       COMMIT WORK.
+*       send_json(
+*         iv_json = '{"status":"success",' &&
+*                   '"message":"Replenishment confirmed",' &&
+*                   '"matnr":"' && lv_matnr && '",' &&
+*                   '"werks":"' && lv_werks && '",' &&
+*                   '"new_status":"O"}'
+*         iv_code = 200 ).
+*     ELSE.
+*       send_json(
+*         iv_json = '{"error":"Database update failed","code":500}'
+*         iv_code = 500 ).
+*     ENDIF.
+  endmethod.
