@@ -1,0 +1,34 @@
+  method EXTRACT_JSON_VALUE.
+
+  DATA: lv_pattern TYPE string,
+        lv_result  TYPE string.
+
+  " Try string value first: "field":"value"
+  CONCATENATE '"' iv_field '"' '\s*:\s*"([^"]+)"'
+    INTO lv_pattern.
+
+  FIND REGEX lv_pattern
+    IN iv_body
+    SUBMATCHES lv_result.
+
+  IF sy-subrc = 0.
+    rv_value = lv_result.
+    CONDENSE rv_value.
+    RETURN.
+  ENDIF.
+
+  " Try numeric value: "field":123
+  CLEAR lv_pattern.
+  CONCATENATE '"' iv_field '"' '\s*:\s*([0-9.]+)'
+    INTO lv_pattern.
+
+  FIND REGEX lv_pattern
+    IN iv_body
+    SUBMATCHES lv_result.
+
+  IF sy-subrc = 0.
+    rv_value = lv_result.
+    CONDENSE rv_value.
+  ENDIF.
+
+  endmethod.
