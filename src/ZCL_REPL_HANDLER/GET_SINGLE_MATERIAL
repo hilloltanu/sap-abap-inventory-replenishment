@@ -1,0 +1,45 @@
+  method GET_SINGLE_MATERIAL.
+
+      DATA: lt_stock  TYPE TABLE OF zmat_stock,
+        ls_stock  TYPE zmat_stock,
+        lv_body   TYPE string,
+        lv_first  TYPE abap_bool VALUE abap_true,
+        lv_count  TYPE i.
+
+      IF iv_matnr IS INITIAL.
+        send_json(
+          iv_json = '{"error":"Material number is required","code":400}'
+          iv_code = 400 ).
+        RETURN.
+      ENDIF.
+
+      SELECT *
+        FROM zmat_stock
+        INTO TABLE @lt_stock
+        WHERE matnr = @iv_matnr
+        ORDER BY werks, lgort.
+
+      IF lt_stock IS INITIAL.
+        send_json(
+          iv_json = '{"error":"Material not found","code":404}'
+          iv_code = 404 ).
+        RETURN.
+      ENDIF.
+
+      lv_count = lines( lt_stock ).
+      lv_body  = '{"matnr":"' && iv_matnr && '",' &&
+                 '"location_count":' && lv_count &&
+                 ',"locations":['.
+
+      LOOP AT lt_stock INTO ls_stock.
+        IF lv_first = abap_false.
+          lv_body = lv_body && ','.
+        ENDIF.
+        lv_first = abap_false.
+        lv_body  = lv_body && build_material_json( ls_stock ).
+      ENDLOOP.
+
+      lv_body = lv_body && ']}'.
+      send_json( iv_json = lv_body iv_code = 200 ).
+
+  endmethod.
