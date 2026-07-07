@@ -1,0 +1,42 @@
+  method BUILD_MATERIAL_JSON.
+
+  DATA: lv_labst TYPE CHAR50,
+        lv_insme TYPE N,
+        lv_einme TYPE N,
+        lv_speme TYPE N,
+        lv_minbe TYPE N,
+        lv_bstrf TYPE N.
+
+  WRITE is_stock-labst TO lv_labst LEFT-JUSTIFIED.
+  WRITE is_stock-insme TO lv_insme LEFT-JUSTIFIED.
+  WRITE is_stock-einme TO lv_einme LEFT-JUSTIFIED.
+  WRITE is_stock-speme TO lv_speme LEFT-JUSTIFIED.
+  WRITE is_stock-minbe TO lv_minbe LEFT-JUSTIFIED.
+  WRITE is_stock-bstrf TO lv_bstrf LEFT-JUSTIFIED.
+
+  CONDENSE lv_labst.
+  CONDENSE lv_insme.
+  CONDENSE lv_einme.
+  CONDENSE lv_speme.
+  CONDENSE lv_minbe.
+  CONDENSE lv_bstrf.
+
+  rv_json = '{' &&
+    '"matnr":"'  && is_stock-matnr  && '",' &&
+    '"werks":"'  && is_stock-werks  && '",' &&
+    '"lgort":"'  && is_stock-lgort  && '",' &&
+    '"labst":'   && lv_labst        && ','  &&
+    '"insme":'   && lv_insme        && ','  &&
+    '"einme":'   && lv_einme        && ','  &&
+    '"speme":'   && lv_speme        && ','  &&
+    '"meins":"'  && is_stock-meins  && '",' &&
+    '"minbe":'   && lv_minbe        && ','  &&
+    '"bstrf":'   && lv_bstrf        && ','  &&
+    '"mmsta":"'  && is_stock-mmsta && '",' &&
+    '"dlinl":"'  && is_stock-dlinl  && '",' &&
+    '"laeda":"'  && is_stock-laeda  && '",' &&
+*    '"lanam":"'  && is_stock-lanam  && '"'  &&
+    '}'.
+
+
+  endmethod.
