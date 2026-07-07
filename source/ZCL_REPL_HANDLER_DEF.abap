@@ -1,0 +1,4 @@
+CLASS zcl_repl_handler DEFINITION PUBLIC FINAL CREATE PUBLIC.
+  PUBLIC SECTION.
+    METHODS check_replenishment.
+ENDCLASS.
