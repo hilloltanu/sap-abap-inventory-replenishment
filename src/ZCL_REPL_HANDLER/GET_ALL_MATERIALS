@@ -1,0 +1,35 @@
+Method GET_ALL_MATERIALS.
+
+    DATA: lt_stock  TYPE TABLE OF zmat_stock,
+        ls_stock  TYPE zmat_stock,
+        lv_body   TYPE string,
+        lv_first  TYPE abap_bool VALUE abap_true,
+        lv_count  TYPE i.
+
+  SELECT *
+    FROM zmat_stock
+    INTO TABLE @lt_stock
+    ORDER BY werks,matnr, lgort.
+
+  IF lt_stock IS INITIAL.
+    send_json(
+      iv_json = '{"message":"No stock records found","count":0}'
+      iv_code = 200 ).
+    RETURN.
+  ENDIF.
+
+  lv_count = lines( lt_stock ).
+  lv_body  = '{"count":' && lv_count && ',"materials":['.
+
+  LOOP AT lt_stock INTO ls_stock.
+    IF lv_first = abap_false.
+      lv_body = lv_body && ','.
+    ENDIF.
+    lv_first = abap_false.
+    lv_body  = lv_body && build_material_json( ls_stock ).
+  ENDLOOP.
+
+  lv_body = lv_body && ']}'.
+  send_json( iv_json = lv_body iv_code = 200 ).
+
+ENDMETHOD.
