@@ -1,0 +1,44 @@
+  method IF_HTTP_EXTENSION~HANDLE_REQUEST.
+
+      DATA: lv_method TYPE string,
+        lv_path   TYPE string,
+        lv_matnr  TYPE matnr,
+        lv_len    TYPE i.
+
+      mo_server = server.
+
+      lv_method = server->request->get_method( ).
+      lv_path   = server->request->get_header_field( '~path_info' ).
+
+      IF lv_method = 'GET' AND lv_path = '/materials'.
+        get_all_materials( ).
+        RETURN.
+      ENDIF.
+
+      IF lv_method = 'GET' AND lv_path = '/materials/alerts'.
+        get_alerts( ).
+        RETURN.
+      ENDIF.
+
+      IF lv_method = 'POST' AND lv_path = '/materials/replenish'.
+        post_replenish( ).
+        RETURN.
+      ENDIF.
+
+      IF lv_method = 'PUT' AND lv_path = '/materials/threshold'.
+        put_threshold( ).
+        RETURN.
+      ENDIF.
+
+      lv_len = strlen( lv_path ).
+      IF lv_method = 'GET' AND lv_len > 11 AND lv_path(11) = '/materials/'.
+        lv_matnr = lv_path+11.
+        get_single_material( lv_matnr ).
+        RETURN.
+      ENDIF.
+
+      send_json(
+        iv_json = '{"error":"Endpoint not found","code":404}'
+        iv_code = 404 ).
+
+  endmethod.
