@@ -1,0 +1,82 @@
+  method PUT_THRESHOLD.
+
+      DATA: lv_body      TYPE string,
+            lv_matnr     TYPE matnr,
+            lv_werks     TYPE werks_d,
+            lv_threshold TYPE string,
+            lv_new_min   TYPE zmat_stock-minbe,
+            lv_check     TYPE matnr.
+
+      lv_body = mo_server->request->get_cdata( ).
+
+      IF lv_body IS INITIAL.
+        send_json(
+          iv_json = '{"error":"Request body is empty","code":400}'
+          iv_code = 400 ).
+        RETURN.
+      ENDIF.
+
+      lv_matnr     = extract_json_value( iv_body = lv_body iv_field = 'matnr' ).
+      lv_werks     = extract_json_value( iv_body = lv_body iv_field = 'werks' ).
+      lv_threshold = extract_json_value( iv_body = lv_body iv_field = 'min_stock' ).
+
+      IF lv_matnr IS INITIAL OR lv_werks IS INITIAL OR lv_threshold IS INITIAL.
+        send_json(
+          iv_json = '{"error":"matnr, werks, min_stock are required","code":400}'
+          iv_code = 400 ).
+        RETURN.
+      ENDIF.
+
+      TRY.
+        lv_new_min = CONV zmat_stock-minbe( lv_threshold ).
+      CATCH cx_sy_conversion_error.
+        send_json(
+          iv_json = '{"error":"min_stock must be a valid number","code":400}'
+          iv_code = 400 ).
+        RETURN.
+      ENDTRY.
+
+      IF lv_new_min <= 0.
+        send_json(
+          iv_json = '{"error":"min_stock must be greater than zero","code":400}'
+          iv_code = 400 ).
+        RETURN.
+      ENDIF.
+
+      SELECT SINGLE matnr
+        FROM zmat_stock
+        INTO lv_check
+        WHERE matnr = lv_matnr
+          AND werks = lv_werks.
+
+      IF sy-subrc <> 0.
+        send_json(
+          iv_json = '{"error":"Material/Plant not found","code":404}'
+          iv_code = 404 ).
+        RETURN.
+      ENDIF.
+
+      UPDATE zmat_stock
+        SET minbe = lv_new_min
+            laeda = sy-datum
+*            lanam = sy-uname
+        WHERE matnr = lv_matnr
+          AND werks = lv_werks.
+
+      IF sy-subrc = 0.
+        COMMIT WORK.
+        send_json(
+          iv_json = '{"status":"success",' &&
+                    '"message":"Threshold updated",' &&
+                    '"matnr":"' && lv_matnr && '",' &&
+                    '"werks":"' && lv_werks && '",' &&
+                    '"new_min_stock":' && lv_threshold && '}'
+          iv_code = 200 ).
+      ELSE.
+        send_json(
+          iv_json = '{"error":"Database update failed","code":500}'
+          iv_code = 500 ).
+      ENDIF.
+
+
+  endmethod.
